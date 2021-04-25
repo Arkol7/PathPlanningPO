@@ -1,7 +1,8 @@
 from typing import Tuple, Callable
 from heapq import heappop, heappush
 import math
-from env.environment import Map, CalculateCost
+from env.environment import CalculateCost
+from env.pomap import POMap
 
 
 class Node:
@@ -74,27 +75,36 @@ class ClosedList:
 
 
 class Astar:
-    def __init__(self, gridmap: Map, start_coordinates: Tuple[int, int], goal_coordinates: Tuple[int, int],
-                 heuristic: Callable[..., float]):
+    def __init__(self, goal_coordinates: Tuple[int, int], heuristic: Callable[..., float]):
+        self.open = None
+        self.closed = None
+        self.gridmap = None
+        self.heuristic = heuristic
+        self.start = None
+        self.goal = Node(goal_coordinates[0], goal_coordinates[1], h=0)
+
+    def __str__(self):
+        return 'Astar'
+
+    def reset(self, gridmap: POMap, start_coordinates: Tuple[int, int]):
         self.open = OpenList()
         self.closed = ClosedList()
         self.gridmap = gridmap
-        self.heuristic = heuristic
 
         start = Node(start_coordinates[0], start_coordinates[1],
-                     g=0, h=heuristic(start_coordinates[0], start_coordinates[1],
-                                      goal_coordinates[0], goal_coordinates[1]))
-        self.goal = Node(goal_coordinates[0], goal_coordinates[1], h=0)
+                     g=0, h=self.heuristic(start_coordinates[0], start_coordinates[1],
+                                           self.goal.i, self.goal.j))
         self.open.add_node(start)
 
-    def compute(self):
+    def compute(self, gridmap: POMap, start_coordinates: Tuple[int, int]):
+        self.reset(gridmap, start_coordinates)
         k = 1
         while not self.open.is_empty:
             current = self.open.pop()
             self.closed.add_node(current)
-            if current.i == self.goal.i  and current.j == self.goal.j:
+            if current.i == self.goal.i and current.j == self.goal.j:
                 return True, current, self.closed, self.open
-            for neighbor in self.gridmap.GetNeighbors(current.i, current.j):
+            for neighbor in self.gridmap.get_neighbors(current.i, current.j):
                 new_node = Node(neighbor[0], neighbor[1],
                                 k=k,
                                 g=current.g + CalculateCost(current.i, current.j,
@@ -113,7 +123,10 @@ class Astar:
         current = goal
         path = []
         while current.parent:
-            path.append(current)
+            path.append((current.i, current.j))
             current = current.parent
-        path.append(current)
+        path.append((current.i, current.j))
         return path[::-1], length
+
+    def statistics(self):
+        return len(self.open) + 2 * len(self.closed)
