@@ -142,14 +142,20 @@ class Uheap:
         return len(self.heap) == 0
 
     def update(self, item, priority):
-        self.remove(item)
-        self.insert(item, priority)
+        for index, (p, c, i) in enumerate(self.heap):
+            if i == item:
+                if p <= priority:
+                    break
+                del self.heap[index]
+                self.heap.append((priority, c, item))
+                heapq.heapify(self.heap)
+                break
+        else:
+            self.insert(item, priority)
 
     def remove(self, state):
-        for index, (_, _, item) in enumerate(self.heap):
-            if item == state:
-                del self.heap[index]
-
+        self.update(state, (-math.inf, -math.inf))
+        a = self.pop()
 
 class LPAStar:
 
@@ -187,7 +193,10 @@ class LPAStar:
     def computeShortestPath(self, draw, gridMap):
         goal = (self.iGoal, self.jGoal)
         while self.U.topKey() < self.calculateKey(goal) or self.rhs[goal] != self.g[goal]:
+
             u = self.U.pop()
+
+            # gridMap[u[0]][u[1]].make_open()
             if self.g[u] > self.rhs[u]:
                 self.g[u] = self.rhs[u]
                 for spot in gridMap[u[0]][u[1]].get_neighbors(gridMap):
@@ -205,7 +214,9 @@ class LPAStar:
                     if (i, j) not in [(self.iStart, self.jStart), (self.iGoal, self.jGoal)]:
                         gridMap[i][j].make_open()
                     self.updateVertex((i, j), gridMap)
+
             draw()
+
         return True
 
     def shortestPath(self, draw, gridMap):
@@ -217,7 +228,7 @@ class LPAStar:
             for spot in gridMap[state[0]][state[1]].get_neighbors(gridMap):
                 i = spot.row
                 j = spot.col
-                if minimum > self.g[(i, j)]:
+                if minimum > self.g[(i, j)] and (i, j) not in path:
                     minimum = self.g[(i, j)]
                     state = (i, j)
             if state != (self.iStart, self.jStart) and state != (self.iGoal, self.jGoal):
@@ -246,52 +257,6 @@ def reconstruct_path(came_from, current, draw):
         current = came_from[current]
         current.make_path()
         draw()
-
-
-def algorithm(draw, grid, start, end):
-    count = 0
-    open_set = PriorityQueue()
-    open_set.put((0, count, start))
-    came_from = {}
-    g_score = {spot: float("inf") for row in grid for spot in row}
-    g_score[start] = 0
-    f_score = {spot: float("inf") for row in grid for spot in row}
-    f_score[start] = h(start.get_pos(), end.get_pos())
-
-    open_set_hash = {start}
-
-    while not open_set.empty():
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-
-        current = open_set.get()[2]
-        open_set_hash.remove(current)
-
-        if current == end:
-            reconstruct_path(came_from, end, draw)
-            end.make_end()
-            return True
-
-        for neighbor in current.neighbors:
-            temp_g_score = g_score[current] + 1
-
-            if temp_g_score < g_score[neighbor]:
-                came_from[neighbor] = current
-                g_score[neighbor] = temp_g_score
-                f_score[neighbor] = temp_g_score + h(neighbor.get_pos(), end.get_pos())
-                if neighbor not in open_set_hash:
-                    count += 1
-                    open_set.put((f_score[neighbor], count, neighbor))
-                    open_set_hash.add(neighbor)
-                    neighbor.make_open()
-
-        draw()
-
-        if current != start:
-            current.make_closed()
-
-    return False
 
 
 def make_grid(rows, width):
@@ -342,6 +307,7 @@ def main(win, width):
     start = None
     end = None
     run = True
+    count = 0
     while run:
         draw(win, grid, ROWS, width)
         for event in pygame.event.get():
@@ -362,9 +328,14 @@ def main(win, width):
 
                 elif spot != end and spot != start:
                     spot.make_barrier()
-                   # if lpa:
-                    #    lpa.g[(spot.row, spot.col)] = math.inf
-                    #    lpa.rhs[(spot.row, spot.col)] = math.inf
+                    if lpa:
+                        i, j = spot.row, spot.col
+                        neig = [(i + 1,j + 1), (i + 1,j), (i,j + 1), (i - 1,j - 1), (i - 1,j), (i,j - 1), (i + 1,j - 1), (i - 1,j + 1)]
+                        for n in neig:
+                            if 0 < n[0] < spot.total_rows and 0 < n[1] < spot.total_rows:
+                                lpa.updateVertex(n, grid)
+
+
 
             elif pygame.mouse.get_pressed()[2]:  # RIGHT
                 pos = pygame.mouse.get_pos()
@@ -387,8 +358,7 @@ def main(win, width):
                             if spot.is_open() or spot.color == PURPLE:
                                 spot.reset()
                 if event.key == pygame.K_r and lpa and shortest_path:
-                    for (i, j) in shortest_path:
-                        lpa.updateVertex((i, j), grid)
+                    count += 1
                     lpa.computeShortestPath(lambda: draw(win, grid, ROWS, width), grid)
                     shortest_path = lpa.shortestPath(lambda: draw(win, grid, ROWS, width), grid)
 
