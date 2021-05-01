@@ -54,6 +54,7 @@ class POMap:
         win_j = np.clip(self.win_j + j, 0, self.width - 1)
         self.observed[win_i, win_j] = 1
         if np.all(self.cells[win_i, win_j] == self.base_cells[win_i, win_j]):
+            self.changed_cells = None
             return False
         else:
             check = self.cells[win_i, win_j] != self.base_cells[win_i, win_j]
@@ -99,4 +100,11 @@ class POMap:
         ax.axes.yaxis.set_visible(False)
         image = plt.imshow(image).make_image(None)[0]
         plt.close()
+        return image
+
+    def draw_initial(self):
+        image = np.zeros((self.height, self.width, 3), dtype=np.uint8)
+        image[self.view_cells == 0, :] = 200
+        image[self.view_cells == 1, 1] = 102
+        image += 50
         return image
