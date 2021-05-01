@@ -3,6 +3,7 @@ from heapq import heappop, heappush
 import math
 from env.environment import CalculateCost
 from env.pomap import POMap
+import numpy as np
 
 
 class Node:
@@ -75,13 +76,18 @@ class ClosedList:
 
 
 class Astar:
-    def __init__(self, goal_coordinates: Tuple[int, int], heuristic: Callable[..., float]):
-        self.open = None
-        self.closed = None
-        self.gridmap = None
+    def __init__(self, gridmap: POMap, start_coordinates: Tuple[int, int],
+                 goal_coordinates: Tuple[int, int], heuristic: Callable[..., float]):
+        self.open = OpenList()
+        self.closed = ClosedList()
+        self.gridmap = gridmap
         self.heuristic = heuristic
-        self.start = None
-        self.goal = Node(goal_coordinates[0], goal_coordinates[1], h=0)
+        self.goal = start_coordinates
+        self.start = Node(goal_coordinates[0], goal_coordinates[1], k=0)
+        self.start.h = self.heuristic(self.start.i, self.start.j,
+                                      self.goal[0], self.goal[1])
+        self.start.f = self.start.h
+        self.open.add_node(self.start)
 
     def __str__(self):
         return 'Astar'
@@ -90,33 +96,35 @@ class Astar:
         self.open = OpenList()
         self.closed = ClosedList()
         self.gridmap = gridmap
+        self.goal = start_coordinates
+        self.start.h = self.heuristic(self.start.i, self.start.j,
+                                      self.goal[0], self.goal[1])
+        self.start.f = self.start.h
 
-        start = Node(start_coordinates[0], start_coordinates[1],
-                     g=0, h=self.heuristic(start_coordinates[0], start_coordinates[1],
-                                           self.goal.i, self.goal.j))
-        self.open.add_node(start)
+        self.open.add_node(self.start)
 
     def compute(self, gridmap: POMap, start_coordinates: Tuple[int, int]):
-        self.reset(gridmap, start_coordinates)
+        if self.goal != start_coordinates:
+            self.reset(gridmap, start_coordinates)
         k = 1
         while not self.open.is_empty:
             current = self.open.pop()
             self.closed.add_node(current)
-            if current.i == self.goal.i and current.j == self.goal.j:
-                return True, current, self.closed, self.open
+            if current.i == self.goal[0] and current.j == self.goal[1]:
+                return True, self.make_path(current)[0]
             for neighbor in self.gridmap.get_neighbors(current.i, current.j):
                 new_node = Node(neighbor[0], neighbor[1],
                                 k=k,
                                 g=current.g + CalculateCost(current.i, current.j,
                                                             neighbor[0], neighbor[1]),
                                 h=self.heuristic(neighbor[0], neighbor[1],
-                                                 self.goal.i, self.goal.j),
+                                                 self.goal[0], self.goal[1]),
                                 parent=current)
 
                 if not self.closed.was_expanded(new_node):
                     self.open.add_node(new_node)
             k += 1
-        return False, None, self.closed, self.open
+        return False, None
 
     def make_path(self, goal):
         length = goal.g
@@ -126,7 +134,7 @@ class Astar:
             path.append((current.i, current.j))
             current = current.parent
         path.append((current.i, current.j))
-        return path[::-1], length
+        return path, length
 
     def statistics(self):
         return len(self.open) + 2 * len(self.closed)

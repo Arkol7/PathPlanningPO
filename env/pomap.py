@@ -42,10 +42,12 @@ class POMap:
         self.base_cells = np.zeros((self.height, self.width))
         self.observed = np.zeros((self.height, self.width))
         self.base_cells = (self.view_cells != 0).astype(int)
+        self.changed_cells = None
 
     def reset(self):
         self.cells = np.zeros((self.height, self.width))
         self.observed = np.zeros((self.height, self.width))
+        self.changed_cells = None
 
     def update(self, i: int, j: int):
         win_i = np.clip(self.win_i + i, 0, self.height - 1)
@@ -54,6 +56,11 @@ class POMap:
         if np.all(self.cells[win_i, win_j] == self.base_cells[win_i, win_j]):
             return False
         else:
+            check = self.cells[win_i, win_j] != self.base_cells[win_i, win_j]
+            check = np.argwhere(check)
+            wi = win_i[check]
+            wj = win_j[check]
+            self.changed_cells = np.hstack((wi, wj))
             self.cells[win_i, win_j] = self.base_cells[win_i, win_j]
             return True
 
@@ -68,16 +75,6 @@ class POMap:
         delta = [[0, 1], [1, 0], [0, -1], [-1, 0]]
         for d in delta:
             if self.in_bounds(i + d[0], j + d[1]) and self.traversable(i + d[0], j + d[1]):
-                neighbors.append((i + d[0], j + d[1]))
-
-        delta_diag = [[1, 1], [1, -1], [-1, 1], [-1, -1]]
-        for d in delta_diag:
-            to_check = [[i + d[0], j], [i, j + d[1]]]
-            flag = True
-            for n in to_check:
-                if not (self.in_bounds(n[0], n[1]) and self.traversable(n[0], n[1])):
-                    flag = False
-            if flag and self.in_bounds(i + d[0], j + d[1]) and self.traversable(i + d[0], j + d[1]):
                 neighbors.append((i + d[0], j + d[1]))
 
         return neighbors
