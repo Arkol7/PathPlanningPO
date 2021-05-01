@@ -1,9 +1,8 @@
 from typing import Tuple, Callable
 from heapq import heappop, heappush
 import math
-from env.environment import CalculateCost
+from common.utils import CalculateCost
 from env.pomap import POMap
-import numpy as np
 
 
 class Node:
@@ -78,12 +77,14 @@ class ClosedList:
 class Astar:
     def __init__(self, gridmap: POMap, start_coordinates: Tuple[int, int],
                  goal_coordinates: Tuple[int, int], heuristic: Callable[..., float]):
+        self.nodes = 0
         self.open = OpenList()
         self.closed = ClosedList()
         self.gridmap = gridmap
         self.heuristic = heuristic
         self.goal = start_coordinates
         self.start = Node(goal_coordinates[0], goal_coordinates[1], k=0)
+        self.nodes += 1
         self.start.h = self.heuristic(self.start.i, self.start.j,
                                       self.goal[0], self.goal[1])
         self.start.f = self.start.h
@@ -100,7 +101,7 @@ class Astar:
         self.start.h = self.heuristic(self.start.i, self.start.j,
                                       self.goal[0], self.goal[1])
         self.start.f = self.start.h
-
+        self.nodes += 1
         self.open.add_node(self.start)
 
     def compute(self, gridmap: POMap, start_coordinates: Tuple[int, int]):
@@ -111,7 +112,7 @@ class Astar:
             current = self.open.pop()
             self.closed.add_node(current)
             if current.i == self.goal[0] and current.j == self.goal[1]:
-                return True, self.make_path(current)[0]
+                return True, self.make_path(current)[0], self.nodes
             for neighbor in self.gridmap.get_neighbors(current.i, current.j):
                 new_node = Node(neighbor[0], neighbor[1],
                                 k=k,
@@ -122,9 +123,10 @@ class Astar:
                                 parent=current)
 
                 if not self.closed.was_expanded(new_node):
+                    self.nodes += 1
                     self.open.add_node(new_node)
             k += 1
-        return False, None
+        return False, None, self.nodes
 
     def make_path(self, goal):
         length = goal.g
@@ -136,5 +138,3 @@ class Astar:
         path.append((current.i, current.j))
         return path, length
 
-    def statistics(self):
-        return len(self.open) + 2 * len(self.closed)
