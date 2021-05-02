@@ -64,39 +64,41 @@ class DstarLite:
 
         self.k_m = 0
         self.U = Uheap()
-        self.rhs = {(i, j): math.inf for i in range(self.gridmap.height) for j in range(self.gridmap.width)}
-        self.g = {(i, j): math.inf for i in range(self.gridmap.height) for j in range(self.gridmap.width)}
+        self.rhs = dict()
+        self.g = dict()
         self.rhs[self.goal] = 0
         self.nodes += 1
         self.U.insert(self.goal, self.calculateKey(self.goal))
 
     def calculateKey(self, state: Tuple[int, int]):
-        g_rhs = min(self.g[state], self.rhs[state])
+        g_rhs = min(self.g.get(state, math.inf), self.rhs.get(state, math.inf))
         return g_rhs + self.h(state[0], state[1], self.start[0], self.start[1]) + self.k_m, g_rhs
 
     def updateVertex(self, u):
         if u != self.goal:
             prevKeys = math.inf
             for neighbor in self.gridmap.get_neighbors(u[0], u[1]):
-                f = self.g[neighbor] + CalculateCost(u[0], u[1],
+                f = self.g.get(neighbor, math.inf) + CalculateCost(u[0], u[1],
                                                      neighbor[0], neighbor[1])
                 if f < prevKeys:
                     prevKeys = f
             self.rhs[u] = prevKeys
         self.U.remove(u)
-        if self.g[u] != self.rhs[u]:
+        if self.g.get(u, math.inf) != self.rhs.get(u, math.inf):
             self.U.insert(u, self.calculateKey(u))
 
     def computeShortestPath(self):
-        while self.U.topKey() < self.calculateKey(self.start) or self.rhs[self.start] != self.g[self.start]:
+        while self.U.topKey() < self.calculateKey(self.start) or self.rhs.get(self.start,
+                                                                              math.inf) != self.g.get(self.start,
+                                                                                                      math.inf):
             k_old = self.U.topKey()
             u = self.U.pop()
 
             if k_old < self.calculateKey(u):
                 self.nodes += 1
                 self.U.insert(u, self.calculateKey(u))
-            elif self.g[u] > self.rhs[u]:
-                self.g[u] = self.rhs[u]
+            elif self.g.get(u, math.inf) > self.rhs.get(u, math.inf):
+                self.g[u] = self.rhs.get(u, math.inf)
                 for neighbor in self.gridmap.get_neighbors(u[0], u[1]):
                     self.nodes += 1
                     self.updateVertex(neighbor)
@@ -116,8 +118,8 @@ class DstarLite:
         while state != self.goal:
             minimum = math.inf
             for neighbor in self.gridmap.get_neighbors(state[0], state[1]):
-                if minimum > self.g[neighbor] and neighbor not in path:
-                    minimum = self.g[neighbor]
+                if minimum > self.g.get(neighbor, math.inf) and neighbor not in path:
+                    minimum = self.g.get(neighbor, math.inf)
                     state = neighbor
             path.append(state)
         return path
