@@ -43,11 +43,13 @@ class POMap:
         self.observed = np.zeros((self.height, self.width))
         self.base_cells = (self.view_cells != 0).astype(int)
         self.changed_cells = None
+        self.path = np.zeros((self.height, self.width))
 
     def reset(self):
         self.cells = np.zeros((self.height, self.width))
         self.observed = np.zeros((self.height, self.width))
         self.changed_cells = None
+        self.path = np.zeros((self.height, self.width))
 
     def update(self, i: int, j: int):
         win_i = np.clip(self.win_i + i, 0, self.height - 1)
@@ -80,17 +82,14 @@ class POMap:
 
         return neighbors
 
-    def draw(self, start, goal, path: list):
+    def draw(self, start, goal):
         image = np.zeros((self.height, self.width, 3), dtype=np.uint8)
+        self.path[start[0],start[1]] = 1
+
         image[self.view_cells == 0, :] = 200
         image[self.view_cells == 1, 1] = 102
         image[self.observed == 1, :] += 50
-
-        for step in path:
-            if self.traversable(step[0], step[1]):
-                image[step[0], step[1]] = [52, 152, 219]
-            else:
-                image[step[0], step[1]] = [230, 126, 34]
+        image[self.path == 1, :] = [0, 0, 255]
 
         image[start[0], start[1]] = [255, 255, 0]
         image[goal[0], goal[1]] = [231, 76, 60]

@@ -85,6 +85,7 @@ class Astar:
         self.goal = start_coordinates
         self.start = Node(goal_coordinates[0], goal_coordinates[1], k=0)
         self.nodes += 1
+        self.start.g = 0
         self.start.h = self.heuristic(self.start.i, self.start.j,
                                       self.goal[0], self.goal[1])
         self.start.f = self.start.h
@@ -98,6 +99,7 @@ class Astar:
         self.closed = ClosedList()
         self.gridmap = gridmap
         self.goal = start_coordinates
+        self.start.g = 0
         self.start.h = self.heuristic(self.start.i, self.start.j,
                                       self.goal[0], self.goal[1])
         self.start.f = self.start.h
@@ -105,28 +107,43 @@ class Astar:
         self.open.add_node(self.start)
 
     def compute(self, gridmap: POMap, start_coordinates: Tuple[int, int]):
-        if self.goal != start_coordinates:
-            self.reset(gridmap, start_coordinates)
-        k = 1
-        while not self.open.is_empty:
-            current = self.open.pop()
-            self.closed.add_node(current)
-            if current.i == self.goal[0] and current.j == self.goal[1]:
-                return True, self.make_path(current)[0], self.nodes
-            for neighbor in self.gridmap.get_neighbors(current.i, current.j):
-                new_node = Node(neighbor[0], neighbor[1],
-                                k=k,
-                                g=current.g + CalculateCost(current.i, current.j,
-                                                            neighbor[0], neighbor[1]),
-                                h=self.heuristic(neighbor[0], neighbor[1],
-                                                 self.goal[0], self.goal[1]),
-                                parent=current)
+        check0 = self.goal == start_coordinates
+        check = True
+        if not(self.gridmap.changed_cells is None) or check0:
+            if not check0:
+                self.reset(gridmap, start_coordinates)
+            k = 1
+            check = False
+            while not self.open.is_empty:
+                current = self.open.pop()
+                self.closed.add_node(current)
+                if current.i == self.goal[0] and current.j == self.goal[1]:
+                    check = True
+                    break
+                for neighbor in self.gridmap.get_neighbors(current.i, current.j):
+                    new_node = Node(neighbor[0], neighbor[1],
+                                    k=k,
+                                    g=current.g + CalculateCost(current.i, current.j,
+                                                                neighbor[0], neighbor[1]),
+                                    h=self.heuristic(neighbor[0], neighbor[1],
+                                                     self.goal[0], self.goal[1]),
+                                    parent=current)
 
-                if not self.closed.was_expanded(new_node):
-                    self.nodes += 1
-                    self.open.add_node(new_node)
-            k += 1
-        return False, None, self.nodes
+                    if not self.closed.was_expanded(new_node):
+                        self.nodes += 1
+                        self.open.add_node(new_node)
+                k += 1
+        minimum = math.inf
+        state = None
+        for neighbor in self.gridmap.get_neighbors(start_coordinates[0],
+                                                   start_coordinates[1]):
+            cur = self.closed.elements.get(neighbor)
+            if not (cur is None):
+                if minimum > cur.g:
+                    minimum = cur.g
+                    state = neighbor
+
+        return check, state, self.nodes
 
     def make_path(self, goal):
         length = goal.g

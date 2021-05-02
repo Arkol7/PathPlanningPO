@@ -30,25 +30,19 @@ class TestMapRunner:
             frames = []
 
         while not (start == goal):
-            if self.grid_map.update(start[0], start[1]) or check:
-                check = False
-                result, path, nodes = alg.compute(self.grid_map, start)
-                stats['Used nodes'] += nodes
-                if result:
-                    if video:
-                        frames.append(self.grid_map.draw(start, goal, path))
-                    stats['Length'] += CalculateCost(start[0], start[1], path[1][0], path[1][1])
-                    start = path[1]
-                    path = path[1:]
-                else:
-                    print("Path not found!")
-                    break
-            else:
+            self.grid_map.update(start[0], start[1])
+            result, next_node, nodes = alg.compute(self.grid_map, start)
+            if next_node is None:
+                break
+            stats['Used nodes'] += nodes
+            if result:
                 if video:
-                    frames.append(self.grid_map.draw(start, goal, path))
-                stats['Length'] += CalculateCost(start[0], start[1], path[1][0], path[1][1])
-                start = path[1]
-                path = path[1:]
+                    frames.append(self.grid_map.draw(start, goal))
+                stats['Length'] += CalculateCost(start[0], start[1], next_node[0], next_node[1])
+                start = next_node
+            else:
+                print("Path not found!")
+                break
             # print(CalculateCost(start[0], start[1], goal[0], goal[1]))
         if video:
             imageio.mimsave(filename, frames, duration=0.1)
@@ -74,7 +68,7 @@ class TestMapRunner:
 if __name__ == '__main__':
     os.chdir('..')
     runner = TestMapRunner('lak303d.map.scen', 3)
-    # task = runner.tasks[197]
-    # runner.run(DstarLite, (int(task[5]), int(task[4])), (int(task[7]), int(task[6])), True)
-    runner.compute_tasks(DstarLite)
-    runner.compute_tasks(Astar)
+    task = runner.tasks[250]
+    print(runner.run(Astar, (int(task[5]), int(task[4])), (int(task[7]), int(task[6])), True))
+    # runner.compute_tasks(DstarLite)
+    # runner.compute_tasks(Astar)
