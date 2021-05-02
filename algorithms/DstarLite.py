@@ -72,16 +72,17 @@ class DstarLite:
 
     def calculateKey(self, state: Tuple[int, int]):
         g_rhs = min(self.g[state], self.rhs[state])
-        return g_rhs + self.h(state[0], state[1], self.start[0], self.start[1])+self.k_m, g_rhs
+        return g_rhs + self.h(state[0], state[1], self.start[0], self.start[1]) + self.k_m, g_rhs
 
     def updateVertex(self, u):
         if u != self.goal:
-            prevKeys = [math.inf]
+            prevKeys = math.inf
             for neighbor in self.gridmap.get_neighbors(u[0], u[1]):
-                prevKeys.append(self.g[neighbor] + CalculateCost(u[0], u[1],
-                                                                 neighbor[0],
-                                                                 neighbor[1]))
-            self.rhs[u] = min(prevKeys)
+                f = self.g[neighbor] + CalculateCost(u[0], u[1],
+                                                     neighbor[0], neighbor[1])
+                if f < prevKeys:
+                    prevKeys = f
+            self.rhs[u] = prevKeys
         self.U.remove(u)
         if self.g[u] != self.rhs[u]:
             self.U.insert(u, self.calculateKey(u))
@@ -135,10 +136,10 @@ class DstarLite:
                                start_coordinates[0], start_coordinates[1])
             self.start = start_coordinates
             self.gridmap = gridmap
-            if not(self.gridmap.changed_cells is None):
+            if not (self.gridmap.changed_cells is None):
                 for vertex in self.gridmap.changed_cells:
                     i, j = vertex[0], vertex[1]
-                    neig = [(i + 1, j), (i, j + 1), (i - 1, j), (i, j - 1)]
+                    neig = [(i, j + 1), (i + 1, j), (i, j - 1), (i - 1, j)]
 
                     for neighbor in neig:
                         if 0 <= neighbor[0] < self.gridmap.height and 0 <= neighbor[1] < self.gridmap.width:
