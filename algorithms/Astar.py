@@ -77,18 +77,19 @@ class ClosedList:
 class Astar:
     def __init__(self, gridmap: POMap, start_coordinates: Tuple[int, int],
                  goal_coordinates: Tuple[int, int], heuristic: Callable[..., float]):
-        self.nodes = 0
+        self.accesses = 0
+        self.expansions = 0
         self.open = OpenList()
         self.closed = ClosedList()
         self.gridmap = gridmap
         self.heuristic = heuristic
         self.goal = start_coordinates
         self.start = Node(goal_coordinates[0], goal_coordinates[1], k=0)
-        self.nodes += 1
         self.start.g = 0
         self.start.h = self.heuristic(self.start.i, self.start.j,
                                       self.goal[0], self.goal[1])
         self.start.f = self.start.h
+        self.accesses += 1
         self.open.add_node(self.start)
 
     def __str__(self):
@@ -103,7 +104,7 @@ class Astar:
         self.start.h = self.heuristic(self.start.i, self.start.j,
                                       self.goal[0], self.goal[1])
         self.start.f = self.start.h
-        self.nodes += 1
+        self.accesses += 1
         self.open.add_node(self.start)
 
     def compute(self, gridmap: POMap, start_coordinates: Tuple[int, int]):
@@ -116,6 +117,8 @@ class Astar:
             check = False
             while not self.open.is_empty:
                 current = self.open.pop()
+                self.accesses += 1
+                self.expansions += 1
                 self.closed.add_node(current)
                 if current.i == self.goal[0] and current.j == self.goal[1]:
                     check = True
@@ -128,9 +131,8 @@ class Astar:
                                     h=self.heuristic(neighbor[0], neighbor[1],
                                                      self.goal[0], self.goal[1]),
                                     parent=current)
-
+                    self.accesses += 1
                     if not self.closed.was_expanded(new_node):
-                        self.nodes += 1
                         self.open.add_node(new_node)
                 k += 1
         minimum = math.inf
@@ -143,7 +145,7 @@ class Astar:
                     minimum = cur.g
                     state = neighbor
 
-        return check, state, self.nodes
+        return check, state
 
     def make_path(self, goal):
         length = goal.g

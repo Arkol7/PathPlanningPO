@@ -22,8 +22,7 @@ class TestMapRunner:
     @timed
     def run(self, algorithm, start: Tuple[int, int], goal: Tuple[int, int], video: bool = False):
         self.grid_map.reset()
-        check = True
-        stats = {'Used nodes': 0, 'Length': 0}
+        stats = {'Length': 0}
         alg = algorithm(self.grid_map, start, goal, DiagonalDistance)
         if video:
             filename = f'{alg}_{self.window}_{start}_{goal}.gif'
@@ -31,10 +30,9 @@ class TestMapRunner:
 
         while not (start == goal):
             self.grid_map.update(start[0], start[1])
-            result, next_node, nodes = alg.compute(self.grid_map, start)
+            result, next_node = alg.compute(self.grid_map, start)
             if next_node is None:
                 break
-            stats['Used nodes'] += nodes
             if result:
                 if video:
                     frames.append(self.grid_map.draw(start, goal))
@@ -46,6 +44,8 @@ class TestMapRunner:
             # print(CalculateCost(start[0], start[1], goal[0], goal[1]))
         if video:
             imageio.mimsave(filename, frames, duration=0.1)
+        stats['Accesses'] = alg.accesses
+        stats['Expansions'] = alg.expansions
         return stats
 
     def compute_tasks(self, algorithm):
