@@ -109,7 +109,7 @@ class DstarLite:
                 for neighbor in self.gridmap.get_neighbors(u[0], u[1]):
                     self.nodes += 1
                     self.updateVertex(neighbor)
-        return True, self.shortestPath()
+        return True
 
     def shortestPath(self):
         path = []
@@ -131,8 +131,9 @@ class DstarLite:
         pass
 
     def compute(self, gridmap: POMap, start_coordinates: Tuple[int, int]):
+        check = True
         if start_coordinates == self.start:
-            check, path = self.computeShortestPath()
+            check = self.computeShortestPath()
         else:
             self.k_m += self.h(self.start[0], self.start[1],
                                start_coordinates[0], start_coordinates[1])
@@ -147,5 +148,12 @@ class DstarLite:
                         if 0 <= neighbor[0] < self.gridmap.height and 0 <= neighbor[1] < self.gridmap.width:
                             self.nodes += 1
                             self.updateVertex(neighbor)
-            check, path = self.computeShortestPath()
-        return check, path, self.nodes
+                check = self.computeShortestPath()
+        state = None
+        minimum = math.inf
+        for neighbor in self.gridmap.get_neighbors(start_coordinates[0],
+                                                   start_coordinates[1]):
+            if minimum > self.g.get(neighbor, math.inf):
+                minimum = self.g.get(neighbor, math.inf)
+                state = neighbor
+        return check, state, self.nodes
