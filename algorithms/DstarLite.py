@@ -72,7 +72,7 @@ class DstarLite:
 
     def calculateKey(self, state: Tuple[int, int]):
         g_rhs = min(self.g[state], self.rhs[state])
-        return g_rhs + self.h(state[0], state[1], self.start[0], self.start[1]), g_rhs
+        return g_rhs + self.h(state[0], state[1], self.start[0], self.start[1])+self.k_m, g_rhs
 
     def updateVertex(self, u):
         if u != self.goal:
@@ -131,12 +131,18 @@ class DstarLite:
         if start_coordinates == self.start:
             check, path = self.computeShortestPath()
         else:
+            self.k_m += self.h(self.start[0], self.start[1],
+                               start_coordinates[0], start_coordinates[1])
             self.start = start_coordinates
             self.gridmap = gridmap
             if not(self.gridmap.changed_cells is None):
                 for vertex in self.gridmap.changed_cells:
-                    for neighbor in self.gridmap.get_neighbors(vertex[0], vertex[1]):
-                        self.nodes += 1
-                        self.updateVertex(neighbor)
+                    i, j = vertex[0], vertex[1]
+                    neig = [(i + 1, j), (i, j + 1), (i - 1, j), (i, j - 1)]
+
+                    for neighbor in neig:
+                        if 0 <= neighbor[0] < self.gridmap.height and 0 <= neighbor[1] < self.gridmap.width:
+                            self.nodes += 1
+                            self.updateVertex(neighbor)
             check, path = self.computeShortestPath()
         return check, path, self.nodes

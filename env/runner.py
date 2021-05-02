@@ -73,6 +73,8 @@ class TestMapRunner:
 
 if __name__ == '__main__':
     os.chdir('..')
-    runner = TestMapRunner('arena.map.scen', 3)
+    runner = TestMapRunner('lak303d.map.scen', 3)
+    # task = runner.tasks[197]
+    # runner.run(DstarLite, (int(task[5]), int(task[4])), (int(task[7]), int(task[6])), True)
     runner.compute_tasks(DstarLite)
     runner.compute_tasks(Astar)

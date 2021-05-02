@@ -95,7 +95,7 @@ class POMap:
         image[start[0], start[1]] = [255, 255, 0]
         image[goal[0], goal[1]] = [231, 76, 60]
 
-        fig, ax = plt.subplots(dpi=150, figsize=(self.width/10, self.height/10))
+        fig, ax = plt.subplots(figsize=(self.width/10, self.height/10))
         ax.axes.xaxis.set_visible(False)
         ax.axes.yaxis.set_visible(False)
         image = plt.imshow(image).make_image(None)[0]
