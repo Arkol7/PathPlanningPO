@@ -80,6 +80,12 @@ class POMap:
             if self.in_bounds(i + d[0], j + d[1]) and self.traversable(i + d[0], j + d[1]):
                 neighbors.append((i + d[0], j + d[1]))
 
+        delta_diag = [[1, 1], [1, -1], [-1, 1], [-1, -1]]
+        for d in delta_diag:
+            if self.in_bounds(i + d[0], j + d[1]) and self.traversable(i + d[0], j + d[1]):
+                if self.traversable(i + d[0], j) and self.traversable(i, j + d[1]):
+                    neighbors.append((i + d[0], j + d[1]))
+
         return neighbors
 
     def draw(self, start, goal):

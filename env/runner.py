@@ -3,7 +3,7 @@ from env.pomap import POMap
 import os
 from algorithms.Astar import Astar
 from algorithms.DstarLite import DstarLite
-from common.utils import ManhattanDistance, CalculateCost
+from common.utils import CalculateCost, DiagonalDistance
 import imageio
 from common.utils import timed
 import wandb
@@ -24,7 +24,7 @@ class TestMapRunner:
         self.grid_map.reset()
         check = True
         stats = {'Used nodes': 0, 'Length': 0}
-        alg = algorithm(self.grid_map, start, goal, ManhattanDistance)
+        alg = algorithm(self.grid_map, start, goal, DiagonalDistance)
         if video:
             filename = f'{alg}_{self.window}_{start}_{goal}.gif'
             frames = []
@@ -68,7 +68,7 @@ class TestMapRunner:
 if __name__ == '__main__':
     os.chdir('..')
     runner = TestMapRunner('lak303d.map.scen', 3)
-    task = runner.tasks[250]
-    print(runner.run(Astar, (int(task[5]), int(task[4])), (int(task[7]), int(task[6])), True))
-    # runner.compute_tasks(DstarLite)
-    # runner.compute_tasks(Astar)
+    # task = runner.tasks[222]
+    # print(runner.run(Astar, (int(task[5]), int(task[4])), (int(task[7]), int(task[6])), True))
+    runner.compute_tasks(DstarLite)
+    runner.compute_tasks(Astar)

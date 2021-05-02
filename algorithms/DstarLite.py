@@ -142,7 +142,8 @@ class DstarLite:
             if not (self.gridmap.changed_cells is None):
                 for vertex in self.gridmap.changed_cells:
                     i, j = vertex[0], vertex[1]
-                    neig = [(i, j + 1), (i + 1, j), (i, j - 1), (i - 1, j)]
+                    neig = [(i, j + 1), (i + 1, j), (i, j - 1), (i - 1, j),
+                            (i + 1, j + 1), (i + 1, j - 1), (i - 1, j + 1), (i - 1, j - 1)]
 
                     for neighbor in neig:
                         if 0 <= neighbor[0] < self.gridmap.height and 0 <= neighbor[1] < self.gridmap.width:
