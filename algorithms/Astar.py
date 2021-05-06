@@ -22,8 +22,8 @@ class Node:
         return (self.i == other.i) and (self.j == other.j)
 
     def __lt__(self, other):
-        return self.f < other.f or ((self.f == other.f) and (self.h < other.h)) \
-               or ((self.f == other.f) and (self.h == other.h) and (self.k > other.k))
+        return self.f < other.f or ((self.f == other.f) and (self.g < other.g)) \
+               or ((self.f == other.f) and (self.g == other.g) and (self.k > other.k))
 
 
 class OpenList:
@@ -79,6 +79,8 @@ class Astar:
                  goal_coordinates: Tuple[int, int], heuristic: Callable[..., float]):
         self.accesses = 0
         self.expansions = 0
+        self.percolates = 0
+
         self.open = OpenList()
         self.closed = ClosedList()
         self.gridmap = gridmap
@@ -90,6 +92,7 @@ class Astar:
                                       self.goal[0], self.goal[1])
         self.start.f = self.start.h
         self.accesses += 1
+        self.percolates += 1
         self.open.add_node(self.start)
 
     def __str__(self):
@@ -105,6 +108,7 @@ class Astar:
                                       self.goal[0], self.goal[1])
         self.start.f = self.start.h
         self.accesses += 1
+        self.percolates += 1
         self.open.add_node(self.start)
 
     def compute(self, gridmap: POMap, start_coordinates: Tuple[int, int]):
@@ -120,9 +124,6 @@ class Astar:
                 self.accesses += 1
                 self.expansions += 1
                 self.closed.add_node(current)
-                if current.i == self.goal[0] and current.j == self.goal[1]:
-                    check = True
-                    break
                 for neighbor in self.gridmap.get_neighbors(current.i, current.j):
                     new_node = Node(neighbor[0], neighbor[1],
                                     k=k,
@@ -133,7 +134,11 @@ class Astar:
                                     parent=current)
                     self.accesses += 1
                     if not self.closed.was_expanded(new_node):
+                        self.percolates += 1
                         self.open.add_node(new_node)
+                if current.i == self.goal[0] and current.j == self.goal[1]:
+                    check = True
+                    break
                 k += 1
         minimum = math.inf
         state = None
@@ -141,8 +146,8 @@ class Astar:
                                                    start_coordinates[1]):
             cur = self.closed.elements.get(neighbor)
             if not (cur is None):
-                if minimum > cur.g:
-                    minimum = cur.g
+                if minimum > cur.g + CalculateCost(cur.i, cur.j, start_coordinates[0], start_coordinates[1]):
+                    minimum = cur.g + CalculateCost(cur.i, cur.j, start_coordinates[0], start_coordinates[1])
                     state = neighbor
 
         return check, state
