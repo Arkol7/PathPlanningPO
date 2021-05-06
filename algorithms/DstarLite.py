@@ -1,10 +1,7 @@
 from typing import Tuple, Callable
-from heapq import heappop, heappush
 import heapq
 import math
-from env.environment import CalculateCost
 from env.pomap import POMap
-import numpy as np
 
 
 class Uheap:
@@ -59,9 +56,11 @@ class DstarLite:
         self.h = heuristic
         self.goal = goal_coordinates
         self.start = start_coordinates
+        self.last = start_coordinates
         self.gridmap = gridmap
         self.accesses = 0
         self.expansions = 0
+        self.percolates = 0
 
         self.k_m = 0
         self.U = Uheap()
@@ -69,6 +68,7 @@ class DstarLite:
         self.g = dict()
         self.rhs[self.goal] = 0
         self.accesses += 1
+        self.percolates += 1
         self.U.insert(self.goal, self.calculateKey(self.goal))
 
     def calculateKey(self, state: Tuple[int, int]):
@@ -78,17 +78,16 @@ class DstarLite:
     def updateVertex(self, u):
         if u != self.goal:
             prevKeys = math.inf
-            for neighbor in self.gridmap.get_neighbors(u[0], u[1]):
-                f = self.g.get(neighbor, math.inf) + CalculateCost(u[0], u[1],
-                                                     neighbor[0], neighbor[1])
+            for neighbor in self.gridmap.get_all_neighbors(u[0], u[1]):
+                self.accesses += 1
+                f = self.g.get(neighbor, math.inf) + self.gridmap.calculate_cost(u, neighbor)
                 if f < prevKeys:
                     prevKeys = f
             self.rhs[u] = prevKeys
         self.U.remove(u)
         if self.g.get(u, math.inf) != self.rhs.get(u, math.inf):
+            self.percolates += 1
             self.U.insert(u, self.calculateKey(u))
-        else:
-            self.expansions += 1
 
     def computeShortestPath(self):
         while self.U.topKey() < self.calculateKey(self.start) or self.rhs.get(self.start,
@@ -96,19 +95,21 @@ class DstarLite:
                                                                                                       math.inf):
             k_old = self.U.topKey()
             u = self.U.pop()
+            self.expansions += 1
             self.accesses += 1
 
             if k_old < self.calculateKey(u):
+                self.percolates += 1
                 self.U.insert(u, self.calculateKey(u))
             elif self.g.get(u, math.inf) > self.rhs.get(u, math.inf):
                 self.g[u] = self.rhs.get(u, math.inf)
-                for neighbor in self.gridmap.get_neighbors(u[0], u[1]):
+                for neighbor in self.gridmap.get_all_neighbors(u[0], u[1]):
                     self.accesses += 1
                     self.updateVertex(neighbor)
             else:
                 self.g[u] = math.inf
                 self.updateVertex(u)
-                for neighbor in self.gridmap.get_neighbors(u[0], u[1]):
+                for neighbor in self.gridmap.get_all_neighbors(u[0], u[1]):
                     self.accesses += 1
                     self.updateVertex(neighbor)
         return True
@@ -137,26 +138,27 @@ class DstarLite:
         if start_coordinates == self.start:
             check = self.computeShortestPath()
         else:
-            self.k_m += self.h(self.start[0], self.start[1],
-                               start_coordinates[0], start_coordinates[1])
             self.start = start_coordinates
             self.gridmap = gridmap
             if not (self.gridmap.changed_cells is None):
+                self.k_m += self.h(self.last[0], self.last[1],
+                                   start_coordinates[0], start_coordinates[1])
+                self.last = start_coordinates
                 for vertex in self.gridmap.changed_cells:
-                    i, j = vertex[0], vertex[1]
-                    neig = [(i, j + 1), (i + 1, j), (i, j - 1), (i - 1, j),
-                            (i + 1, j + 1), (i + 1, j - 1), (i - 1, j + 1), (i - 1, j - 1)]
+                    self.accesses += 1
+                    self.updateVertex((vertex[0], vertex[1]))
+                    for vertex_neighbor in self.gridmap.get_all_neighbors(vertex[0], vertex[1]):
+                        self.updateVertex(vertex_neighbor)
+                        self.accesses += 1
 
-                    for neighbor in neig:
-                        if 0 <= neighbor[0] < self.gridmap.height and 0 <= neighbor[1] < self.gridmap.width:
-                            self.accesses += 1
-                            self.updateVertex(neighbor)
                 check = self.computeShortestPath()
         state = None
         minimum = math.inf
-        for neighbor in self.gridmap.get_neighbors(start_coordinates[0],
+        for neighbor in self.gridmap.get_all_neighbors(start_coordinates[0],
                                                    start_coordinates[1]):
-            if minimum > self.g.get(neighbor, math.inf):
-                minimum = self.g.get(neighbor, math.inf)
+            if minimum > self.g.get(neighbor, math.inf) + self.gridmap.calculate_cost(start_coordinates,
+                                                                                      neighbor):
+                minimum = self.g.get(neighbor, math.inf) + self.gridmap.calculate_cost(start_coordinates,
+                                                                                      neighbor)
                 state = neighbor
         return check, state
