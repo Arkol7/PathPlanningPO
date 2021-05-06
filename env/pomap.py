@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import math
 
 
 class POMap:
@@ -87,6 +88,28 @@ class POMap:
                     neighbors.append((i + d[0], j + d[1]))
 
         return neighbors
+
+    def get_all_neighbors(self, i, j):
+        neighbors = []
+        delta = [[0, 1], [1, 0], [0, -1], [-1, 0],
+                 [1, 1], [1, -1], [-1, 1], [-1, -1]]
+        for d in delta:
+            if self.in_bounds(i + d[0], j + d[1]):
+                neighbors.append((i + d[0], j + d[1]))
+        return neighbors
+
+
+    def calculate_cost(self, u, v):
+        if self.traversable(u[0], u[1]) and self.traversable(v[0], v[1]):
+            if u[0] == v[0] or u[1] == v[1]:
+                return 1.
+            else:
+                if self.traversable(v[0], u[1]) and self.traversable(u[0], v[1]):
+                    return math.sqrt(2)
+                else:
+                    return math.inf
+        else:
+            return math.inf
 
     def draw(self, start, goal):
         image = np.zeros((self.height, self.width, 3), dtype=np.uint8)

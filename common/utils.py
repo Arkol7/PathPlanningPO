@@ -16,8 +16,7 @@ def ManhattanDistance(i1, j1, i2, j2):
 
 
 def DiagonalDistance(i1, j1, i2, j2):
-    return abs(abs(int(i1) - int(i2)) - abs(int(j1) - int(j2))) + min(abs(int(i1) - int(i2)), abs(int(j1) - int(j2)))
-
+    return abs(abs(i1-i2)-abs(j1-j2)) + math.sqrt(2)*min(abs(i1-i2),abs(j1-j2))
 
 def ChebyshevDistance(i1, j1, i2, j2):
     return max([abs(int(i1) - int(i2)), abs(int(j1) - int(j2))])
