@@ -81,18 +81,11 @@ class POMap:
             if self.in_bounds(i + d[0], j + d[1]) and self.traversable(i + d[0], j + d[1]):
                 neighbors.append((i + d[0], j + d[1]))
 
-        delta_diag = [[1, 1], [1, -1], [-1, 1], [-1, -1]]
-        for d in delta_diag:
-            if self.in_bounds(i + d[0], j + d[1]) and self.traversable(i + d[0], j + d[1]):
-                if self.traversable(i + d[0], j) and self.traversable(i, j + d[1]):
-                    neighbors.append((i + d[0], j + d[1]))
-
         return neighbors
 
     def get_all_neighbors(self, i, j):
         neighbors = []
-        delta = [[0, 1], [1, 0], [0, -1], [-1, 0],
-                 [1, 1], [1, -1], [-1, 1], [-1, -1]]
+        delta = [[0, 1], [1, 0], [0, -1], [-1, 0]]
         for d in delta:
             if self.in_bounds(i + d[0], j + d[1]):
                 neighbors.append((i + d[0], j + d[1]))
@@ -103,11 +96,6 @@ class POMap:
         if self.traversable(u[0], u[1]) and self.traversable(v[0], v[1]):
             if u[0] == v[0] or u[1] == v[1]:
                 return 1.
-            else:
-                if self.traversable(v[0], u[1]) and self.traversable(u[0], v[1]):
-                    return math.sqrt(2)
-                else:
-                    return math.inf
         else:
             return math.inf
 

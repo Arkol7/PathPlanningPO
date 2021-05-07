@@ -79,7 +79,7 @@ class Astar:
                  goal_coordinates: Tuple[int, int], heuristic: Callable[..., float]):
         self.accesses = 0
         self.expansions = 0
-        self.percolates = 0
+        self.insertions = 0
 
         self.open = OpenList()
         self.closed = ClosedList()
@@ -92,7 +92,7 @@ class Astar:
                                       self.goal[0], self.goal[1])
         self.start.f = self.start.h
         self.accesses += 1
-        self.percolates += 1
+        self.insertions += 1
         self.open.add_node(self.start)
 
     def __str__(self):
@@ -108,7 +108,7 @@ class Astar:
                                       self.goal[0], self.goal[1])
         self.start.f = self.start.h
         self.accesses += 1
-        self.percolates += 1
+        self.insertions += 1
         self.open.add_node(self.start)
 
     def compute(self, gridmap: POMap, start_coordinates: Tuple[int, int]):
@@ -134,12 +134,16 @@ class Astar:
                                     parent=current)
                     self.accesses += 1
                     if not self.closed.was_expanded(new_node):
-                        self.percolates += 1
+                        self.insertions += 1
                         self.open.add_node(new_node)
                 if current.i == self.goal[0] and current.j == self.goal[1]:
                     check = True
                     break
                 k += 1
+
+        if not check:
+            return False, None
+
         minimum = math.inf
         state = None
         for neighbor in self.gridmap.get_neighbors(start_coordinates[0],
@@ -149,16 +153,8 @@ class Astar:
                 if minimum > cur.g + CalculateCost(cur.i, cur.j, start_coordinates[0], start_coordinates[1]):
                     minimum = cur.g + CalculateCost(cur.i, cur.j, start_coordinates[0], start_coordinates[1])
                     state = neighbor
-
+        if state is None:
+            raise Exception('Couldn\'t find next step')
         return check, state
 
-    def make_path(self, goal):
-        length = goal.g
-        current = goal
-        path = []
-        while current.parent:
-            path.append((current.i, current.j))
-            current = current.parent
-        path.append((current.i, current.j))
-        return path, length
 

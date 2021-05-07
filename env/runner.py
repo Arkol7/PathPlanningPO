@@ -3,7 +3,7 @@ from env.pomap import POMap
 import os
 from algorithms.Astar import Astar
 from algorithms.DstarLite import DstarLite
-from common.utils import CalculateCost, DiagonalDistance
+from common.utils import CalculateCost, ManhattanDistance
 import imageio
 from common.utils import timed
 import wandb
@@ -23,7 +23,7 @@ class TestMapRunner:
     def run(self, algorithm, start: Tuple[int, int], goal: Tuple[int, int], video: bool = False):
         self.grid_map.reset()
         stats = {'Length': 0}
-        alg = algorithm(self.grid_map, start, goal, DiagonalDistance)
+        alg = algorithm(self.grid_map, start, goal, ManhattanDistance)
         if video:
             filename = f'{alg}_{self.window}_{start}_{goal}.gif'
             frames = []
@@ -31,8 +31,6 @@ class TestMapRunner:
         while not (start == goal):
             self.grid_map.update(start[0], start[1])
             result, next_node = alg.compute(self.grid_map, start)
-            if next_node is None:
-                break
             if result:
                 if video:
                     frames.append(self.grid_map.draw(start, goal))
@@ -40,12 +38,14 @@ class TestMapRunner:
                 start = next_node
             else:
                 print("Path not found!")
+                stats['Length'] = None
                 break
             # print(CalculateCost(start[0], start[1], goal[0], goal[1]))
         if video:
             imageio.mimsave(filename, frames, duration=0.1)
         stats['Accesses'] = alg.accesses
         stats['Expansions'] = alg.expansions
+        stats['Insertions'] = alg.insertions
         return stats
 
     def compute_tasks(self, algorithm):
