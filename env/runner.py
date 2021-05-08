@@ -58,9 +58,9 @@ class TestMapRunner:
         run.log({'map': wandb.Image(self.grid_map.draw_initial())}, step=0)
         for ind in trange(len(self.tasks)):
             task = self.tasks[ind]
-            (stats), time = self.run(algorithm, (int(task[5]), int(task[4])), (int(task[7]), int(task[6])))
+            (stats), time = self.run(algorithm, (int(task[0]), int(task[1])), (int(task[2]), int(task[3])))
             stats['Time'] = time
-            stats['Optimal'] = float(task[8])
+            stats['Optimal'] = float(task[4])
             run.log(stats, step=ind)
         run.finish()
 
