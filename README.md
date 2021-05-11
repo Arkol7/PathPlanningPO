@@ -24,16 +24,14 @@ pip install -r requirements.txt
 
 ```bash
 cd PathPlanningPO
-``` 
-
-# Introduction
+```
 
 # LPA*
 - run LPA* visualization on 4(or 8)-connected gridmap:
 ```bash
 python 4-c-LPA.py
 ``` 
-for an unknown reason, sometimes the lpa on an 8-connected map does not find optimal path with minimization (g + cost), so it finds shortest path only using g-values
+for an unknown reason, sometimes the LPA* on an 8-connected map does not find the optimal path with minimization (g + cost), so it finds the shortest path only using g-values
 ### Key-buttons:
 - left mouse button - place cell (the first click places start cell, second one - goal cell, all other - impassable cells)
 - SPACE - run LPA* from scratch
