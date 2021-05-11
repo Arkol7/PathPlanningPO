@@ -31,3 +31,46 @@ cd PathPlanningPO
 # LPA*
 
 # D* Lite
+
+In this project 2 algorithms for solving robot navigation problem were implemented. 
+The first - restarted A* (see [implementation](algorithms/Astar.py)). 
+The second - D* Lite (see [implementation](algorithms/DstarLite.py)). To compare the performance 
+of algorithms were created a special ``class TestMapRunner`` (see [implementation](env/runner.py)).
+It uses task files and maps from [maps](maps/) directory. To evaluate performance of algorithms we calculate 4 metrics:
+
+- Insertions - the number of node's insertions in a heap during computing.
+- Accesses - the number of accesses to nodes during computing.
+- Expansions - the number of expansions of nodes during computing.
+- Time.
+
+## Massive tests 
+To run tests you need to have wandb account to log statistics. To give it go to their [official cite](https://wandb.ai/site).
+Then you install wandb and login, you can run massive tests. To do this run:
+
+```bash
+python massive_tests.py
+```
+
+To modify test settings go to [script](massive_tests.py) and change parameters:
+- ``maps`` - task files for maps. If you want to run your own map, create it according to
+[MovingAI](https://movingai.com/benchmarks/grids.html) pattern, save in [maps](maps/) directory and then preprocess it with
+  ``create_tests.py``. For this purpose write your filename in main function in this script and run it locally.
+  ```bash
+  python create_tests.py
+  ```
+  This script rewrites your task files, and you now can use them.
+  
+- ``windows`` - list of window sizes will be used.
+
+This massive tests run all your tasks with A* and D* Lite.
+
+## Visualization
+
+If you want to see how agent moves on a map, use ``animation.py``.
+Change arguments in``runner.run(algorithm, start, finish, True)`` on that you want.
+Then you can just run:
+```bash
+python animation.py
+```
+And giff file will be generated, also script prints you some statistics.
+
