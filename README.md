@@ -29,5 +29,15 @@ cd PathPlanningPO
 # Introduction
 
 # LPA*
+- run LPA* visualization on 4(or 8)-connected gridmap:
+```bash
+python 4-c-LPA.py
+``` 
+for an unknown reason, sometimes the lpa on an 8-connected map does not find optimal path with minimization (g + cost), so it finds shortest path only using g-values
+### Key-buttons:
+- left mouse button - place cell (the first click places start cell, second one - goal cell, all other - impassable cells)
+- SPACE - run LPA* from scratch
+- c - clear screen
+- r - re-run LPA* using information from previous run
 
 # D* Lite
