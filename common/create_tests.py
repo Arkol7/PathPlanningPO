@@ -2,9 +2,10 @@ import os
 
 def main(filename):
     tasks_file = open(filename)
-    map_name = tasks_file.readline()[:-1]
+    tasks_file.readline()[:-1]
     tasks = [task.split() for task in tasks_file]
     tasks_file.close()
+    map_name = tasks[0][1]
     tasks = [[task[5], task[4], task[7], task[6], float(task[8])] for task in tasks]
     tasks = sorted(tasks, key=lambda x: x[4])
     choosen_tasks = []
@@ -15,7 +16,7 @@ def main(filename):
                 steps += 1
                 task[4] = str(task[4])
                 choosen_tasks.append(task)
-                if steps == 400:
+                if steps == 300:
                     break
 
     tasks_file = open(filename, 'w')
