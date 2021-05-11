@@ -1,6 +1,8 @@
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+mpl.use('Agg')
 import math
 
 
@@ -91,17 +93,18 @@ class POMap:
                 neighbors.append((i + d[0], j + d[1]))
         return neighbors
 
-
     def calculate_cost(self, u, v):
         if self.traversable(u[0], u[1]) and self.traversable(v[0], v[1]):
             if u[0] == v[0] or u[1] == v[1]:
                 return 1.
+            else:
+                return math.inf
         else:
             return math.inf
 
     def draw(self, start, goal):
         image = np.zeros((self.height, self.width, 3), dtype=np.uint8)
-        self.path[start[0],start[1]] = 1
+        self.path[start[0], start[1]] = 1
 
         image[self.view_cells == 0, :] = 200
         image[self.view_cells == 1, 1] = 102
@@ -110,13 +113,12 @@ class POMap:
 
         image[start[0], start[1]] = [255, 255, 0]
         image[goal[0], goal[1]] = [231, 76, 60]
-
-        fig, ax = plt.subplots(figsize=(self.width/10, self.height/10))
+        fig, ax = plt.subplots(figsize=(self.width // 20, self.height // 20))
         ax.axes.xaxis.set_visible(False)
         ax.axes.yaxis.set_visible(False)
         image = plt.imshow(image).make_image(None)[0]
-        plt.close()
-        return image
+        plt.close('all')
+        return image[::-1, :, :]
 
     def draw_initial(self):
         image = np.zeros((self.height, self.width, 3), dtype=np.uint8)
