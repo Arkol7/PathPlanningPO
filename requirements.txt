@@ -1,0 +1,6 @@
+wandb
+matplotlib
+imageio
+tqdm
+numpy
+pygame
