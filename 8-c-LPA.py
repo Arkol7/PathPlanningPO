@@ -6,7 +6,7 @@ import heapq
 
 WIDTH = 800
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
-pygame.display.set_caption("A* Path Finding Algorithm")
+pygame.display.set_caption("8-connected LPA*")
 
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -365,4 +365,5 @@ def main(win, width):
     pygame.quit()
 
 
-main(WIN, WIDTH)
+if __name__ == '__main__':
+    main(WIN, WIDTH)
