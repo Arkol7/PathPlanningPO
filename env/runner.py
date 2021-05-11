@@ -50,7 +50,7 @@ class TestMapRunner:
 
     def compute_tasks(self, algorithm):
         run = wandb.init(
-            project='PathPlanning', reinit=True
+            project='PathPlanningTests', reinit=True
         )
         run.config.algorithm = str(algorithm)
         run.config.map = self.map_name
@@ -67,8 +67,11 @@ class TestMapRunner:
 
 if __name__ == '__main__':
     os.chdir('..')
-    runner = TestMapRunner('lak303d.map.scen', 3)
-    # task = runner.tasks[222]
-    # print(runner.run(Astar, (int(task[5]), int(task[4])), (int(task[7]), int(task[6])), True))
-    runner.compute_tasks(DstarLite)
-    runner.compute_tasks(Astar)
+
+    maps = ['brc505d.map.scen', 'hrt201d.map.scen', 'lak303d.map.scen']
+    windows = [10, 5, 1]
+    for window in windows:
+        for map_name in maps:
+            runner = TestMapRunner(map_name, window)
+            runner.compute_tasks(DstarLite)
+            runner.compute_tasks(Astar)
